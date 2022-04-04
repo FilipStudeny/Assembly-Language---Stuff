@@ -1,0 +1,124 @@
+MAIN:	CALL CLEAR
+		JB P2.0,0 
+		CALL PROG
+		JMP MAIN
+		RET
+	
+PROG:   CALL CLEAR
+		CALL LED
+		CALL RGB
+		CALL DISPLAJ
+		CALL ZVUK
+		CALL CLEAR
+		JMP MAIN;
+		RET
+
+CLEAR: 	MOV P0,#00000000b
+		MOV P1,#00000000b
+		RET
+	
+LED: MOV R1,#3
+     HEP:MOV R0,#7
+	     MOV P1,#00000001b;
+	     CALL del200
+	     MOV A,P1;
+	     HOP:RL A;
+	     	MOV P1,A;
+	     	CALL del200
+	    	DJNZ R0,HOP
+	    	DJNZ R1, HEP
+	    	RET
+
+RGB: 	MOV P0,#11110000b
+     	CALL DEL400
+		MOV P0,#00001111b
+		CALL DEL400
+		MOV P0,#00010000b
+		CALL DEL400
+		MOV P0,#00100000b
+		CALL DEL400
+		MOV P0,#00000000b
+		CALL DEL400
+		RET
+
+DISPLAJ:CALL D_JEDNICKA
+		CALL D_DVOJKA
+		CALL D_TROJKA
+		CALL D_CTVERKA
+		RET
+	
+	D_JEDNICKA: MOV P1,#11110111b
+				MOV P0,#00000110b
+				CALL DEL1S
+				RET
+	
+	D_DVOJKA: 	MOV P1,#11111011b
+				MOV P0,#01011011b
+				CALL DEL1S
+				RET
+	
+	D_TROJKA: 	MOV P1,#11111101b
+				MOV P0,#01001111b
+				CALL DEL1S
+				RET
+	
+	D_CTVERKA: 	MOV P1,#11111110b
+				MOV P0,#01100110b
+				CALL DEL1S
+				RET
+
+ZVUK: 	MOV R7,#100 
+CV:	CALL TONC
+	DJNZ R7,CV
+	RET
+
+	TONC:	SETB P0.7
+			CALL DELL1908U 
+			CLR P0.7 
+			CALL DELL1908U
+			RET
+	
+	DEL2S:	CALL DEL1S;
+			CALL DEL1S;
+		
+	DELL1908U:	CALL MS1
+				CALL U408
+				CALL U500
+				RET
+	U500:	MOV R0,#248
+	HL1:	DJNZ R0,HL1
+			RET
+	
+	MS1:	CALL U500
+			CALL U500
+			RET
+	
+	U408:	MOV R1,#202
+	XA:	DJNZ R1,XA
+		NOP
+		RET
+		
+	
+	RB3	equ	11b
+
+DEL1S:	acall	DEL200
+DEL800:	acall	DEL400
+DEL400:	acall	DEL200
+DEL200:	acall	DEL100
+DEL100:	push	acc
+	mov	a,#100
+DELAY:	acall	DEL1MS
+	dec	a
+	cjne	a,#0,DELAY
+	pop	acc
+	ret
+
+DEL1MS:	push	PSW		;schovej puvodni RB
+	orl	PSW,#RB3 shl 3	;nastav Register Bank = 3
+	mov	r7,#0
+	djnz	r7,$
+	mov	r7,#0c6h
+	djnz	r7,$
+	pop	PSW		;obnov Register Bank
+	ret
+	END
